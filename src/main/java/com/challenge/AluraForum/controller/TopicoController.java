@@ -71,6 +71,13 @@ public class TopicoController {
         Page<Topico> page = repo.search(curso, inicio, fim, pageable);
         return ResponseEntity.ok(page.map(TopicoResponse::from));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<TopicoResponse> detalhar(@PathVariable Long id) {
+        return repo.findById(id)
+                .map(topico -> ResponseEntity.ok(TopicoResponse.from(topico)))
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
 
 
