@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX uk_topico_titulo_mensagem ON topico (titulo, mensagem);
