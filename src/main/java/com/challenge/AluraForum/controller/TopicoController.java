@@ -114,4 +114,16 @@ public class TopicoController {
                         .body((TopicoResponse) null)
         );
     }
+
+    // EXCLUSÃO
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        // evita EmptyResultDataAccessException do deleteById
+        if (!repo.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        repo.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }
