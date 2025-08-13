@@ -1,0 +1,2 @@
+ALTER TABLE usuarios
+ADD COLUMN session_id VARCHAR(255);

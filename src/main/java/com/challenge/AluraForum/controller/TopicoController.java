@@ -4,6 +4,8 @@ import com.challenge.AluraForum.domain.Topico;
 import com.challenge.AluraForum.dto.AtualizarTopicoRequest;
 import com.challenge.AluraForum.dto.NovoTopicoRequest;
 import com.challenge.AluraForum.dto.TopicoResponse;
+import com.challenge.AluraForum.exception.GlobalExceptionHandler;
+import com.challenge.AluraForum.exception.DuplicateTopicException;
 import com.challenge.AluraForum.repository.TopicoRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -41,8 +44,9 @@ public class TopicoController {
     public ResponseEntity<TopicoResponse> criar(@RequestBody @Valid NovoTopicoRequest req,
                                                 UriComponentsBuilder uriBuilder) {
         if (repo.existsByTituloAndMensagem(req.titulo(), req.mensagem())) {
-            return conflict();
+            throw new DuplicateTopicException("Já existe um tópico com este título e mensagem.");
         }
+
 
         Topico t = Topico.builder()
                 .titulo(req.titulo())
@@ -95,10 +99,7 @@ public class TopicoController {
                                                     @RequestBody @Valid AtualizarTopicoRequest req) {
         return repo.findById(id).map(t -> {
             if (repo.existsByTituloAndMensagemAndIdNot(req.titulo(), req.mensagem(), id)) {
-                // força o tipo do body para TopicoResponse
-                return ResponseEntity
-                        .status(HttpStatus.CONFLICT)
-                        .body((TopicoResponse) null);
+                throw new DuplicateTopicException("Já existe um tópico com este título e mensagem.");
             }
 
             t.setTitulo(req.titulo());
@@ -124,6 +125,15 @@ public class TopicoController {
             return ResponseEntity.notFound().build();
         }
         repo.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // EXCLUSÃO DE TODOS OS TÓPICOS (somente ADMIN)
+    @DeleteMapping("/todos")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public ResponseEntity<Void> excluirTodos() {
+        repo.deleteAll();
         return ResponseEntity.noContent().build();
     }
 }
