@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 
 public interface TopicoRepository extends JpaRepository<Topico, Long> {
     boolean existsByTituloAndMensagem(String titulo, String mensagem);
+    boolean existsByTituloAndMensagemAndIdNot(String titulo, String mensagem, Long id);
 
     @Query("""
            SELECT t FROM Topico t
